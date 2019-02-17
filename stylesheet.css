@@ -1,0 +1,28 @@
+@keyframes blink {
+  50% {
+    opacity: 0.7;
+  }
+}
+.blink {
+  animation: blink 1s linear infinite;
+}
+table {
+  border-collapse: collapse;
+  margin: 30px auto;
+}
+td {
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  user-select: none;
+}
+
+section{
+  text-align: center;
+}
+
+h1{
+  
+}
+
+

@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "add": "^2.0.6",
+    "eslint": "^5.14.0",
+    "global": "^4.3.2",
+    "prettier": "^1.16.4"
+  }
+}
