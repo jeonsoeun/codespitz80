@@ -152,12 +152,18 @@ const Game = (() => {
   //렌더링.
   const el = tag => document.createElement(tag);
   const render = _ => {
-    table.innerHTML = '';
-    data.forEach(row => table.appendChild(row.reduce((tr, block) => {
-      const css = `${block ? `background:${block.image};` : ''} background-position:center; background-size:90%;width:${blockSize}px;height:${blockSize}px;cursor:pointer;background-repeat: no-repeat;`;
-      tr.appendChild(el('td')).style.cssText = css;
-      return tr;
-    }, el('tr'))));
+    //1강 과제 1: render 시점에서 tr, td생성하지 않고 스타일만 바꾸기.
+    data.forEach((row, i) => {
+      const tr = document.querySelectorAll('tr')[i];
+      row.forEach((block, j) => {
+        let cssText = `${block ? `background:${block.image};` : ''} background-position:center; background-size:90%;width:${blockSize}px;height:${blockSize}px;cursor:pointer;background-repeat: no-repeat;`;
+        //1강 과제 2: 선택한 블록 배경 노란색.
+        if (selected.indexOf(block) !== -1) {
+          cssText += 'background-color: #FBFEB9'
+        }
+        tr.querySelectorAll('td')[j].setAttribute('style', cssText)
+      })
+    })
   };
 
   // 게임 초기화. 이거만 밖에 노출하면 된다.
@@ -167,6 +173,11 @@ const Game = (() => {
       const r = [];
       data.push(r);
       for (let j = 0; j < column; j++) r[j] = Block.GET();
+      //1강 과제1(render에서 스타일만 바꾸기)를 위해 게임 초기화 시 빈 테이블 생성
+      table.appendChild(r.reduce((tr, block)=>{
+        tr.appendChild(el('td'));
+        return tr;
+      }, el('tr')))
     }
     //테이블에 이벤트를 건다.
     table.addEventListener('mousedown', down);
