@@ -7,48 +7,26 @@ const Block = class {
   }
 
   get image() {
-    return `url('img/${this._type}.png)`;
+    return `url('img/${this._type}.png')`;
   }
   get type() {
     return this._type;
   }
 };
 // 블록 한 칸의 타입은 블록 클래스안에 넣어도되지만 그러지말자. 의존성을 낮추자.
-Block.GET = (type = parseInt(Math.random * 5)) => new Block(type);
+Block.GET = (type = parseInt(Math.random() * 5)) => new Block(type);
 
 // Game은 초기화, 렌더, 이벤트처리가 필요.
-const Game = (_ => {
-  const column = 8,
-    row = 8,
-    blockSize = 80;
+const Game = (() => {
+  const column = 8, row = 8, blockSize = 80;
+  const data = [];
   let table;
   let startBlock, currBlock, isDown;
   const selected = [];
-  // 게임 초기화. 이거만 밖에 노출하면 된다.
-  const init = tid => {
-    table = document.querySelector(tid);
-    for (let i = 0; i < row; i++) {
-      const r = [];
-      data.push(r);
-      for (let j = 0; i < column; i++) r[j] = Block.GET();
-    }
-    //테이블에 이벤트를 건다.
-    table.addEventListener('mousedown', down);
-    table.addEventListener('mouseup', up);
-    table.addEventListener('mouseleave', up);
-    table.addEventListener('mousedown', move);
-
-    //화면에 뿌린다.
-    render();
-  };
 
   //선택한 블록과 인접한지 검사
   const isNext = curr => {
-    let r0,
-      c0,
-      r1,
-      c1,
-      cnt = 0;
+    let r0, c0, r1, c1, cnt = 0;
     data.some((row, i) => {
       let j;
       if ((j = row.indexOf(currBlock)) != -1) {
@@ -59,16 +37,13 @@ const Game = (_ => {
       }
       return cnt == 2;
     });
-    return (
-      (curr != currBlock && Math.abs(r0 - r1) == 1) || Math.abs(c0 - c1) == 1
-    );
+    return (curr != currBlock && (Math.abs(r0 - r1) == 1 || Math.abs(c0 - c1) == 1));
   };
 
   const getBlock = (x, y) => {
-    const { Left: L, top: T } = table.getBoundingClientRect();
-    if (x < L || x > L + blockSize * row || y < T || y > T + blockSize * column)
-      return null;
-    return data[parseInt((y - T) / blockSize)][parseInt(x - L) / blockSize];
+    const { top: T, left: L } = table.getBoundingClientRect();
+    if (x < L || x > (L + blockSize * row) || y < T || y > (T + blockSize * column)) return null;
+    return data[parseInt((y - T) / blockSize)][parseInt((x - L) / blockSize)];
   };
 
   // 마우스 이벤트 함수들 down,move, up
@@ -104,17 +79,22 @@ const Game = (_ => {
   };
 
   const remove = _ => {
+    //데이터 삭제
     data.forEach(r => {
-      //데이터 삭제
-      let i;
-      if ((i = r.indexOf(v)) != -1) {
-        r[i] = null;
-      }
+      selected.forEach(v => {
+        let i;
+        if ((i = r.indexOf(v)) != -1) {
+          r[i] = null;
+        }
+      });
     });
+    render();
+    setTimeout(drop, 300);
   };
 
   // 블록들 아래로 떨구기
   const drop = _ => {
+    console.log('drop')
     let isNext = false;
     for (let j = 0; j < column; j++) {
       for (let i = row - 1; i > -1; i--) {
@@ -140,10 +120,10 @@ const Game = (_ => {
     isNext ? setTimeout(drop, 300) : readyToFill();
   };
 
-  //블록 미리 만들어 두기
+  //떨어질 블록 미리 만들어 두기
   const fills = [];
   letfillCnt = 0;
-  constreadyToFill = _ => {
+  const readyToFill = _ => {
     fills.length = 0;
     data.some(row => {
       if (row.indexOf(null) == -1) return true;
@@ -173,20 +153,30 @@ const Game = (_ => {
   const el = tag => document.createElement(tag);
   const render = _ => {
     table.innerHTML = '';
-    data.forEach(row =>
-      table.appendChild(
-        row.reduce((tr, block) => {
-          tr.appendChild(el('td')).style.cssText = `
-          ${block ? `background:${block.image};` : ''}
-          width:${blockSize}px;
-          height:${blockSize}px;
-          cursor:pointer`;
-          return tr;
-        }, el('tr'))
-      )
-    );
+    data.forEach(row => table.appendChild(row.reduce((tr, block) => {
+      const css = `${block ? `background:${block.image};` : ''} background-position:center; background-size:90%;width:${blockSize}px;height:${blockSize}px;cursor:pointer;background-repeat: no-repeat;`;
+      tr.appendChild(el('td')).style.cssText = css;
+      return tr;
+    }, el('tr'))));
   };
-  init(); //게임 초기화 (게임 실행)
+
+  // 게임 초기화. 이거만 밖에 노출하면 된다.
+  return tid => {
+    table = document.querySelector(tid);
+    for (let i = 0; i < row; i++) {
+      const r = [];
+      data.push(r);
+      for (let j = 0; j < column; j++) r[j] = Block.GET();
+    }
+    //테이블에 이벤트를 건다.
+    table.addEventListener('mousedown', down);
+    table.addEventListener('mouseup', up);
+    table.addEventListener('mouseleave', up);
+    table.addEventListener('mousemove', move);
+
+    //화면에 뿌린다.
+    render();
+  };
 })();
 
 Game('#stage');
