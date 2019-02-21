@@ -189,5 +189,4 @@ const Game = (() => {
     render();
   };
 })();
-
 Game('#stage');
