@@ -1,18 +1,5 @@
-// import { isContext } from 'vm';
+import Block from './Block.js'
 
-// 블록 클래스. 블록 한칸을 정함.
-const Block = class {
-  constructor(type) {
-    this._type = type;
-  }
-
-  get image() {
-    return `url('img/${this._type}.png')`; //이건 베이스레이어에 있으면안됨. (네이티브 코드.)
-  }
-  get type() {
-    return this._type;
-  }
-};
 // 블록 한 칸의 타입은 블록 클래스안에 넣어도되지만 그러지말자. 의존성을 낮추자.
 Block.GET = (type = parseInt(Math.random() * 5)) => new Block(type);
 
@@ -94,7 +81,6 @@ const Game = (() => {
 
   // 블록들 아래로 떨구기
   const drop = _ => {
-    console.log('drop')
     let isNext = false;
     for (let j = 0; j < column; j++) {
       for (let i = row - 1; i > -1; i--) {
@@ -122,7 +108,7 @@ const Game = (() => {
 
   //떨어질 블록 미리 만들어 두기
   const fills = [];
-  letfillCnt = 0;
+  let fillCnt = 0;
   const readyToFill = _ => {
     fills.length = 0;
     data.some(row => {
