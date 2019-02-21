@@ -7,7 +7,7 @@ const Block = class {
   }
 
   get image() {
-    return `url('img/${this._type}.png')`;
+    return `url('img/${this._type}.png')`; //이건 베이스레이어에 있으면안됨. (네이티브 코드.)
   }
   get type() {
     return this._type;
@@ -19,10 +19,10 @@ Block.GET = (type = parseInt(Math.random() * 5)) => new Block(type);
 // Game은 초기화, 렌더, 이벤트처리가 필요.
 const Game = (() => {
   const column = 8, row = 8, blockSize = 80;
-  const data = [];
+  const data = []; //data가 모든 정보를 알고있다. 그래서 다른걸 위임을 못해. -> 연산줄고 메모리적게들지만.. 복잡성을 감당해야됨.
   let table;
   let startBlock, currBlock, isDown;
-  const selected = [];
+  const selected = []; //selected와 data는 Block의 권한을 뺏은 셈.
 
   //선택한 블록과 인접한지 검사
   const isNext = curr => {
