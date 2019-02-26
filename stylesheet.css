@@ -17,12 +17,22 @@ td {
   user-select: none;
 }
 
-section{
+section {
   text-align: center;
 }
 
-h1{
-  
+h1 {
+  color:#208afb;
 }
 
-
+#stage {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
+.block {
+  position: absolute;
+  cursor: pointer;
+  overflow: hidden;
+}

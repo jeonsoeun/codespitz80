@@ -1,6 +1,7 @@
 {
   "parserOptions": {
     "ecmaVersion": 6,
-    "sourceType": "module"
+    "sourceType": "module",
+    "one-var-declaration-per-line": ["error", "never"]
   }
 }

@@ -1,4 +1,4 @@
-import { el, prop } from './util.js';
+import { prop } from './util.js';
 
 // Model
 // 블록 한칸의 좌표, 타입, 선택 여부

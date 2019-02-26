@@ -1,5 +1,5 @@
 // 컨트롤러의 역할을 한다. 모델과 메세지를 연결해주는 책임.
-const Game = class {
+export const Game = class {
   cosntructor(setting) { 
     prop(this, setting, {
       items: new WeakSet,
@@ -7,7 +7,7 @@ const Game = class {
       item2msg: new WeakMap, // 모델이 바꼈으니 메세지 전달.
       prevItem: null, // 마지막으로 선택된 블록. 이걸 알아야 선택된 블록들을 추적가능.
     })
-    const { render, row, column, items, item2msg } = this;
+    const { renderer, row, column, items, item2msg } = this;
     renderer.setGame(this, row, column); // 렌더러의 구상레이어는 모르니까 이렇게.
     for (let c = 0; c < column; c++){
       for (let r = 0; r < row; r++) this._add(c, r);
@@ -19,7 +19,7 @@ const Game = class {
   }
   // item 추가
   _add(c, r) {
-    const { itemType, row, column, msg2item, item2msg, renderer } = this;
+    const { itemType, items, row, column, msg2item, item2msg, renderer } = this;
     const item = new Item(itemType[parseInt(Math.random() * itemType.length)], c, r - row);
     const msg = new GameMsg;
     items.add(item);
@@ -42,17 +42,57 @@ const Game = class {
     items.forEach(i => i.selected() && this._delete(i));
     this._dropBlocks();
   }
-  //블록 떨구기
+  //블록 떨구기. 해당블록이 몇칸 떨어져야되는지 세고 움직임, _fillStart 실행
   _dropBlocks() {
-    const { renderer, item2msg } = this;
-    
+    const { items, row, column, renderer, item2msg } = this;
+    const allItems = []; //local 2차원 배열 만들어서 빠르게 카운팅
+    for (let i = row; i--;) allItems.push([]);
+    items.forEach(item => (allItems[item.y][item.x] = item))
+    const coll = [];
+    for (let c = 0; c < column; c++){
+      for (let r = 0; r < row; r++){
+        if (allItems[r] && allItems[r][c]) {
+          let cnt = 0; 
+          for (let j = r + 1; j < row; j++){
+            if (allItems[j] && !allItems[j][c]) cnt++;
+          }
+          if (cnt) {
+            const item = allItems[r][c];
+            item.pos(c, r + cnt);
+            coll.push(renderer.move(item2msg.get(item).pos(item.x, item.y))); // promise수집
+          }
+        }
+      }
+    }
+    if (coll.length) Promise.all(coll).then(_ => this._fillStart());
+  }
+  //블록 채우기. 빈칸이 몇개인지 세서 그만큼 만들고 떨구기.
+  _fillStart() {
+    const { items, column, row, renderer, item2msg } = this;
+    const allItems = [];
+    for (let i = row; i--;) allItems.push([]);
+    items.forEach(item => (allItems[item.y][item.x] = item))
+    const coll = [];
+    for (let c = 0; c < column; c++){
+      let cnt = 0;
+      for (let r = row-1; r > -1; r--){
+        if (allItems[r] && !allItems[r][c]) {
+          coll.push(this._add(c, r));
+        }
+      }
+    }
+    if (!coll.length) return;
+    Promise.all(coll.map(item => {
+      item.pos(item.x, item.y + row);
+      return renderer.move(item2msg.get(item).pos(item.x, item.y));
+    })).then(_ => renderer.activate())
   }
 
   //게임 렌더러가 Game한테 호출할 메소드 (컨트롤러와 뷰의 메세지를 통한 대화)
   getInfo(msg) {
     const item = this.msg2item.get(msg);
     msg.info(item.x, item.y, item.type, item.selected);
-    return msg
+    return msg;
   }
   // 블록 첫 선택
   selectStart(msg) {
