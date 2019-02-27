@@ -15,4 +15,5 @@ const game = new Game({
     c: 5,
     itemFactory: (parent, bw, bh, img) => new DivRenderer(parent, bw, bh, img)
   })
+  //추상 factory method pattern 이 나올것...
 });
