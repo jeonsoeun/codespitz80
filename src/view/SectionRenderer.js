@@ -7,20 +7,8 @@ export const SectionRenderer = class extends Renderer {
     const bw = parseInt(w / c),
       bh = parseInt(h / r),
       _q = [];
-    prop(this, {
-      stage,
-      bw,
-      bh,
-      w,
-      h,
-      c,
-      r,
-      img,
-      isdown: false,
-      _q,
-      isAct: null,
-      curr: 0
-    });
+    // prettier-ignore
+    prop(this, { stage, bw, bh, w, h, c, r, img, isdown: false, _q, isAct: null, curr: 0 });
     stage.style.cssText = `width:${w}px;height:${h}px;
       background-image:url('${bg}');
       background-size:${bw}px ${bh}px`;
@@ -63,9 +51,7 @@ export const SectionRenderer = class extends Renderer {
   _remove(item) {
     this.stage.removeChild(item.object);
   }
-  _render() {
-    
-  }
+  _render() {}
   _getItem(x, y) {
     const el = document.elementFromPoint(x, y);
     return this.some(v => v.find(el));
