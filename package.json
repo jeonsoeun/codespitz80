@@ -2,13 +2,9 @@
   "scripts": {
     "start": "browser-sync start --server --files \"*/*.css\" \"*/*.js\" \"*.html\""
   },
-  "dependencies": {
-    "add": "^2.0.6",
-    "eslint": "^5.14.0",
-    "global": "^4.3.2"
-  },
   "devDependencies": {
     "browser-sync": "^2.26.3",
+    "eslint": "^5.14.1",
     "prettier": "^1.16.4"
   }
 }
