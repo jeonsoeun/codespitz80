@@ -17,4 +17,4 @@ const UTIL = {
   }
 };
 
-export const { el, prop, ThrowSet } = UTIL;
+const { el, prop, ThrowSet } = UTIL;

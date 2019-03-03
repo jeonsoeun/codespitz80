@@ -1,5 +1,3 @@
-import { prop } from './util.js';
-
 // Model
 // 블록 한칸의 좌표, 타입, 선택 여부
 const Item = class {
@@ -53,5 +51,3 @@ const Item = class {
     return Math.abs(this._x - item._x) < 2 && Math.abs(this._y - item._y) < 2;
   }
 };
-
-export default Item;

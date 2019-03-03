@@ -1,27 +1,34 @@
 // 컨트롤러의 역할을 한다. 모델과 메세지를 연결해주는 책임.
-export const Game = class {
-  cosntructor(setting) { 
+const Game = class {
+  constructor(setting) {
     prop(this, setting, {
-      items: new WeakSet,
-      msg2item: new WeakMap, // 메세지 받아서 모델 바꾸기
-      item2msg: new WeakMap, // 모델이 바꼈으니 메세지 전달.
-      prevItem: null, // 마지막으로 선택된 블록. 이걸 알아야 선택된 블록들을 추적가능.
-    })
+      items: new Set(),
+      msg2item: new WeakMap(), // 메세지 받아서 모델 바꾸기
+      item2msg: new WeakMap(), // 모델이 바꼈으니 메세지 전달.
+      prevItem: null // 마지막으로 선택된 블록. 이걸 알아야 선택된 블록들을 추적가능.
+    });
     const { renderer, row, column, items, item2msg } = this;
     renderer.setGame(this, row, column); // 렌더러의 구상레이어는 모르니까 이렇게.
-    for (let c = 0; c < column; c++){
+    for (let c = 0; c < column; c++) {
       for (let r = 0; r < row; r++) this._add(c, r);
     }
-    Promise.all(items.map(item => {
-      item.pos(item.x, item.y + row);
-      return renderer.move(item2msg.get(item).pos(item.x, item.y));
-    })).then(_=>renderer.activate())
+    Promise.all(
+      [...items].map(item => {
+        // #lecture2 : 안되는 부분 수정. Set에는 array.map()을 쓸 수없다.
+        item.pos(item.x, item.y + row);
+        return renderer.move(item2msg.get(item).pos(item.x, item.y));
+      })
+    ).then(renderer.activate());
   }
   // item 추가
   _add(c, r) {
     const { itemType, items, row, column, msg2item, item2msg, renderer } = this;
-    const item = new Item(itemType[parseInt(Math.random() * itemType.length)], c, r - row);
-    const msg = new GameMsg;
+    const item = new Item(
+      itemType[parseInt(Math.random() * itemType.length)],
+      c,
+      r - row
+    );
+    const msg = new GameMsg();
     items.add(item);
     msg2item.set(msg, item);
     item2msg.set(item, msg);
@@ -46,14 +53,14 @@ export const Game = class {
   _dropBlocks() {
     const { items, row, column, renderer, item2msg } = this;
     const allItems = []; //local 2차원 배열 만들어서 빠르게 카운팅
-    for (let i = row; i--;) allItems.push([]);
-    items.forEach(item => (allItems[item.y][item.x] = item))
+    for (let i = row; i--; ) allItems.push([]);
+    items.forEach(item => (allItems[item.y][item.x] = item));
     const coll = [];
-    for (let c = 0; c < column; c++){
-      for (let r = 0; r < row; r++){
+    for (let c = 0; c < column; c++) {
+      for (let r = 0; r < row; r++) {
         if (allItems[r] && allItems[r][c]) {
-          let cnt = 0; 
-          for (let j = r + 1; j < row; j++){
+          let cnt = 0;
+          for (let j = r + 1; j < row; j++) {
             if (allItems[j] && !allItems[j][c]) cnt++;
           }
           if (cnt) {
@@ -70,25 +77,27 @@ export const Game = class {
   _fillStart() {
     const { items, column, row, renderer, item2msg } = this;
     const allItems = [];
-    for (let i = row; i--;) allItems.push([]);
-    items.forEach(item => (allItems[item.y][item.x] = item))
+    for (let i = row; i--; ) allItems.push([]);
+    items.forEach(item => (allItems[item.y][item.x] = item));
     const coll = [];
-    for (let c = 0; c < column; c++){
+    for (let c = 0; c < column; c++) {
       let cnt = 0;
-      for (let r = row-1; r > -1; r--){
+      for (let r = row - 1; r > -1; r--) {
         if (allItems[r] && !allItems[r][c]) {
           coll.push(this._add(c, r));
         }
       }
     }
     if (!coll.length) return;
-    Promise.all(coll.map(item => {
-      item.pos(item.x, item.y + row);
-      return renderer.move(item2msg.get(item).pos(item.x, item.y));
-    })).then(_ => renderer.activate())
+    Promise.all(
+      coll.map(item => {
+        item.pos(item.x, item.y + row);
+        return renderer.move(item2msg.get(item).pos(item.x, item.y));
+      })
+    ).then(_ => renderer.activate());
   }
 
-  //게임 렌더러가 Game한테 호출할 메소드 (컨트롤러와 뷰의 메세지를 통한 대화)
+  //게임 렌더러가 호출할 메소드 (컨트롤러와 뷰의 메세지를 통한 대화)
   getInfo(msg) {
     const item = this.msg2item.get(msg);
     msg.info(item.x, item.y, item.type, item.selected);
@@ -106,6 +115,7 @@ export const Game = class {
     const item = this.msg2item.get(msg);
     if (!item) return;
     const { prevItem: curr } = this;
+    console.log('1')
     // 마지막으로 선택된 블록이 아니고, 타입이 같고, 인접 블록이여야 한다.
     if (item == curr || item.type != curr.type || !curr.isBorder(item)) return;
     if (!curr.isSelectedList(item)) {
@@ -133,5 +143,21 @@ export const Game = class {
       items.forEach(i => i.unselect());
     }
     this.prevItem = null;
+  }
+};
+
+class GameMsg {
+  pos(x, y) {
+    if (x === undefined) return this._pos;
+    this._pos = { x, y };
+    return this;
+  }
+
+  info(x, y, type, selected) {
+    if (x === undefined) {
+      return this._info;
+    }
+    this._info = { x, y, type, selected };
+    return this._info;
   }
 }
