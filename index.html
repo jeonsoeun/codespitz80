@@ -18,18 +18,20 @@
     <script src="./src/baseRenderer.js"></script>
     <script src="./src/concreteRenderer.js"></script>
     <script>
+      const column = 6;
+      const row = 6;
       const game = new Game({
-        column: 6,
-        row: 6,
+        column: column,
+        row: row,
         itemType: '01234'.split(''),
         renderer: new SectionRenderer({
           stage: '#stage',
           bg: '../img/bg01.gif',
           img: '../img/tower.png',
-          w: 400,
-          h: 400,
-          r: 5,
-          c: 5,
+          w: column * 80,
+          h: row * 80,
+          r: row,
+          c: column,
           itemFactory: (parent, bw, bh, img) =>
             new DivRenderer(parent, bw, bh, img)
         })

@@ -34,7 +34,7 @@ const DivRenderer = class extends ItemRenderer {
     div.style.left = bw * x + 'px';
     div.style.top = bh * y + 'px';
     div.style.backgroundPosition = -(bw * type) + 'px';
-    div.style.backgroundPositionY = (selected ? -bh / 2 : 0) + 'px';
+    div.style.backgroundPositionY = (selected ? -bh : 0) + 'px';
   }
 };
 
@@ -84,8 +84,13 @@ const SectionRenderer = class extends Renderer {
   deactivate() {
     this.isAct = false;
   }
-  _add(item) {
+  _add(msg) { // #lecture2 과제 해결.
+    const { msg2item, item2msg, _itemFactory } = this;
+    const item = _itemFactory(this, this.bw, this.bh, this.img);
+    msg2item.set(msg, item);
+    item2msg.set(item, msg);
     this.stage.appendChild(item.object);
+    return item;
   }
   _remove(item) {
     this.stage.removeChild(item.object);
@@ -93,7 +98,7 @@ const SectionRenderer = class extends Renderer {
   _render() {}
   _getItem(x, y) {
     const el = document.elementFromPoint(x, y);
-    return this.some(v => v.find(el));   // TODO
+    return this.some(v => v.find(el)); 
   }
   dragDown({ pageX: x, pageY: y }) {
     const item = this._getItem(x, y);

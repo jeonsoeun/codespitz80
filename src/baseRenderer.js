@@ -9,8 +9,8 @@ const ItemRenderer = class {
   remove() {
     return this._remove();
   }
-  move() {
-    return this._move();
+  move(x,y) {
+    return this._move(x,y);
   }
   render(x, y, type, selected) {
     this._render(x, y, type, selected);
@@ -18,7 +18,7 @@ const ItemRenderer = class {
   _remove() {
     throw 'override';
   }
-  _move() {
+  _move(x,y) {
     throw 'override';
   }
   _render(x, y, type, selected) {
@@ -37,7 +37,7 @@ const Renderer = class extends ThrowSet {
     });
   }
   setGame(_game, _row, _col) {
-    prop(this,{ _game, _row, _col});
+    prop(this, { _game, _row, _col });
   }
   activate() {
     throw 'override';
@@ -45,13 +45,9 @@ const Renderer = class extends ThrowSet {
   deactivate() {
     throw 'override';
   }
-  add(msg) {
-    const { msg2item, item2msg, _itemFactory } = this;
-    const item = _itemFactory(this, this.bw, this.bh, this.img);
-    super.add(item);
-    msg2item.set(msg, item);
-    item2msg.set(item, msg);
-    this._add(item);
+  add(msg) {// #lecture2 과제 해결.
+    const item = this._add(msg);
+    if (item) super.add(item);
   }
   _add(v) {
     throw 'override';
@@ -91,7 +87,6 @@ const Renderer = class extends ThrowSet {
   }
   _gameRequest(f, item) {
     const { _game: game, item2msg } = this;
-    console.log(item)
     if (item) f.call(game, item2msg.get(item));
     else f.call(game);
   }
