@@ -46,7 +46,7 @@ const Game = class {
   _clear() {
     const { items, renderer } = this;
     renderer.deactivate();
-    items.forEach(i => i.selected() && this._delete(i));
+    items.forEach(i => i.selected && this._delete(i));
     this._dropBlocks();
   }
   //블록 떨구기. 해당블록이 몇칸 떨어져야되는지 세고 움직임, _fillStart 실행
@@ -57,11 +57,13 @@ const Game = class {
     items.forEach(item => (allItems[item.y][item.x] = item));
     const coll = [];
     for (let c = 0; c < column; c++) {
-      for (let r = 0; r < row; r++) {
+      for (let r = row-1; r > -1; r--) {
         if (allItems[r] && allItems[r][c]) {
           let cnt = 0;
           for (let j = r + 1; j < row; j++) {
-            if (allItems[j] && !allItems[j][c]) cnt++;
+            if (allItems[j] && !allItems[j][c]) {
+              cnt++;
+            }
           }
           if (cnt) {
             const item = allItems[r][c];
@@ -71,17 +73,17 @@ const Game = class {
         }
       }
     }
-    if (coll.length) Promise.all(coll).then(_ => this._fillStart());
+    if (coll.length) Promise.all(coll).then(this._fillStart());
+    else this._fillStart(); // #lecture2 오류 수정: 첫번째 줄 아이템을 포함해서 선택하면 fill이 안되는 문제 해결.
   }
   //블록 채우기. 빈칸이 몇개인지 세서 그만큼 만들고 떨구기.
   _fillStart() {
     const { items, column, row, renderer, item2msg } = this;
     const allItems = [];
-    for (let i = row; i--; ) allItems.push([]);
+    for (let i = row; i--;) allItems.push([]);
     items.forEach(item => (allItems[item.y][item.x] = item));
     const coll = [];
     for (let c = 0; c < column; c++) {
-      let cnt = 0;
       for (let r = row - 1; r > -1; r--) {
         if (allItems[r] && !allItems[r][c]) {
           coll.push(this._add(c, r));
@@ -89,12 +91,10 @@ const Game = class {
       }
     }
     if (!coll.length) return;
-    Promise.all(
-      coll.map(item => {
-        item.pos(item.x, item.y + row);
-        return renderer.move(item2msg.get(item).pos(item.x, item.y));
-      })
-    ).then(_ => renderer.activate());
+    Promise.all(coll.map(item => {
+      item.pos(item.x, item.y + row);
+      return renderer.move(item2msg.get(item).pos(item.x, item.y));
+    })).then(renderer.activate())
   }
 
   //게임 렌더러가 호출할 메소드 (컨트롤러와 뷰의 메세지를 통한 대화)
@@ -115,7 +115,6 @@ const Game = class {
     const item = this.msg2item.get(msg);
     if (!item) return;
     const { prevItem: curr } = this;
-    console.log('1')
     // 마지막으로 선택된 블록이 아니고, 타입이 같고, 인접 블록이여야 한다.
     if (item == curr || item.type != curr.type || !curr.isBorder(item)) return;
     if (!curr.isSelectedList(item)) {
@@ -124,7 +123,7 @@ const Game = class {
       this.prevItem = item;
     } else {
       // 기존에 선택된 거중에 직전거면 해제
-      if (curr.prevItem === item) {
+      if (curr.prev === item) {
         this.prevItem = curr.prev;
         curr.unselect();
       }
